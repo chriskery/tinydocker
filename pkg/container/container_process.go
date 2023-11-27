@@ -26,11 +26,11 @@ const (
 )
 
 var (
-	lowerDirFormat  = filepath.Join(RootUrl, "%s/lower")
-	upperDirFormat  = filepath.Join(RootUrl, "%s/upper")
-	workDirFormat   = filepath.Join(RootUrl, "%s/work")
-	mergedDirFormat = filepath.Join(RootUrl, "%s/merged")
-	overlayFSFormat = "lowerdir=%s,upperdir=%s,workdir=%s"
+	LowerDirFormat  = filepath.Join(RootUrl, "%s/lower")
+	UpperDirFormat  = filepath.Join(RootUrl, "%s/upper")
+	WorkDirFormat   = filepath.Join(RootUrl, "%s/work")
+	MergedDirFormat = filepath.Join(RootUrl, "%s/merged")
+	OverlayFSFormat = "lowerdir=%s,upperdir=%s,workdir=%s"
 )
 
 type Info struct {
@@ -90,7 +90,7 @@ func NewParentProcess(flags *options.TinyDockerFlags, image string) (*exec.Cmd, 
 	}
 	cmd.ExtraFiles = []*os.File{readPipe}
 	cmd.Env = append(os.Environ(), flags.Env...)
-	cmd.Dir = fmt.Sprintf(mergedDirFormat, flags.ContainerName)
+	cmd.Dir = fmt.Sprintf(MergedDirFormat, flags.ContainerName)
 	NewWorkSpace(flags.Volume, image, flags.ContainerName)
 	return cmd, writePipe, nil
 }

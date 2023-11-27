@@ -37,7 +37,7 @@ func runInit() error {
 	if len(cmdArray) == 0 {
 		return errors.New("run container get user command error, cmdArray is nil")
 	}
-	logrus.Info("cmdArray: %v", cmdArray)
+	logrus.Info("cmdArray: %s", strings.Join(cmdArray, " "))
 
 	// 挂载文件系统
 	if err := setUpMount(); err != nil {
@@ -111,20 +111,21 @@ func setUpMount() error {
 func pivotRoot(root string) error {
 	/**
 	   PivotRoot调用有限制，newRoot和oldRoot不能在同一个文件系统下，因此，为了使当前root的老root和新root不在同一个文件系统下，
-	这里把root重新mount了一次。
+		这里把root重新mount了一次。
 	  bind mount是把相同的内容换了一个挂载点的挂载方法
 	*/
 	if err := syscall.Mount(root, root, "bind", syscall.MS_BIND|syscall.MS_REC, ""); err != nil {
 		return errors.Wrap(err, "mount rootfs to itself")
+	}
+	// 从新创建的rootfs进行隔离，才可以使用pivot_root
+	if err := syscall.Mount("", "/", "", syscall.MS_REC|syscall.MS_PRIVATE, ""); err != nil {
+		return err
 	}
 	// 创建 rootfs/.pivot_root 目录用于存储 old_root
 	pivotDir := filepath.Join(root, ".pivot_root")
 	if err := os.Mkdir(pivotDir, constant.Perm0777); err != nil {
 		return err
 	}
-	//if err := syscall.Unshare(syscall.SYS_MOUNT); err != nil {
-	//	return err
-	//}
 	// 执行pivot_root调用,将系统rootfs切换到新的rootfs,
 	// PivotRoot调用会把 old_root挂载到pivotDir,也就是rootfs/.pivot_root,挂载点现在依然可以在mount命令中看到
 	if err := syscall.PivotRoot(root, pivotDir); err != nil {

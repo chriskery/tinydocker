@@ -23,34 +23,31 @@ import (
 3）创建merged目录并挂载overlayFS
 4）如果有指定volume则挂载volume
 */
-func NewWorkSpace(volume, imageName, containerName string) {
+func NewWorkSpace(volume, imageName, containerName string) error {
 	err := createLower(imageName, containerName)
 	if err != nil {
-		log.Errorf("createLower err:%v", err)
-		return
+		return fmt.Errorf("createLower err:%v", err)
 	}
 	err = createUpperWorker(containerName)
 	if err != nil {
-		log.Errorf("createUpperWorker err:%v", err)
-		return
+		return fmt.Errorf("createUpperWorker err:%v", err)
 	}
 	err = mountOverlayFS(containerName)
 	if err != nil {
-		log.Errorf("mountOverlayFS err:%v", err)
-		return
+		return fmt.Errorf("mountOverlayFS err:%v", err)
 	}
 	if volume != "" {
 		volumeURLs := volumeUrlExtract(volume)
 		if len(volumeURLs) == 2 && volumeURLs[0] != "" && volumeURLs[1] != "" {
 			err = mountVolume(containerName, volumeURLs)
 			if err != nil {
-				log.Errorf("mountVolume err:%v", err)
-				return
+				return fmt.Errorf("mountVolume err:%v", err)
 			}
 		} else {
 			log.Infof("volume parameter input is not correct.")
 		}
 	}
+	return nil
 }
 
 // DeleteWorkSpace Delete the OverlayFS filesystem while container exit
@@ -123,7 +120,7 @@ func createUpperWorker(containerName string) error {
 // mountOverlayFS 挂载 overlayFS
 func mountOverlayFS(containerName string) error {
 	// 创建对应的挂载目录
-	mntUrl := fmt.Sprintf(mergedDirFormat, containerName)
+	mntUrl := fmt.Sprintf(MergedDirFormat, containerName)
 	if err := os.MkdirAll(mntUrl, constant.Perm0777); err != nil {
 		return errors.Wrapf(err, "mkdir dir %s ", mntUrl)
 	}
@@ -220,23 +217,23 @@ func getImage(imageName string) string {
 }
 
 func getLower(containerName string) string {
-	return fmt.Sprintf(lowerDirFormat, containerName)
+	return fmt.Sprintf(LowerDirFormat, containerName)
 }
 
 func getUpper(containerName string) string {
-	return fmt.Sprintf(upperDirFormat, containerName)
+	return fmt.Sprintf(UpperDirFormat, containerName)
 }
 
 func getWorker(containerName string) string {
-	return fmt.Sprintf(workDirFormat, containerName)
+	return fmt.Sprintf(WorkDirFormat, containerName)
 }
 
 func getMerged(containerName string) string {
-	return fmt.Sprintf(mergedDirFormat, containerName)
+	return fmt.Sprintf(MergedDirFormat, containerName)
 }
 
 func getOverlayFSDirs(lower, upper, worker string) string {
-	return fmt.Sprintf(overlayFSFormat, lower, upper, worker)
+	return fmt.Sprintf(OverlayFSFormat, lower, upper, worker)
 }
 
 // pathExists returns whether a path exists.

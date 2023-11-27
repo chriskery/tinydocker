@@ -31,6 +31,7 @@ func NewTinyDockerRunCommand() *cobra.Command {
 			}
 
 			return runRun(tinyDockerFlags, image, args)
+			//return runRunInMain(tinyDockerFlags, image, args)
 		},
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
@@ -114,7 +115,6 @@ func deleteContainerInfo(containerName string) {
 // sendInitCommand 通过writePipe将指令发送给子进程
 func sendInitCommand(cmdArray []string, writePipe *os.File) {
 	command := strings.Join(cmdArray, " ")
-	logrus.Infof("cmdArray: %v", command)
 	_, _ = writePipe.WriteString(command)
 	_ = writePipe.Close()
 }
