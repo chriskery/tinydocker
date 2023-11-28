@@ -31,7 +31,6 @@ func NewTinyDockerRunCommand() *cobra.Command {
 			}
 
 			return runRun(tinyDockerFlags, image, args)
-			//return runRunInMain(tinyDockerFlags, image, args)
 		},
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {

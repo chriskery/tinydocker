@@ -114,10 +114,19 @@ func pivotRoot(root string) error {
 		这里把root重新mount了一次。
 	  bind mount是把相同的内容换了一个挂载点的挂载方法
 	*/
-	if err := syscall.Mount(root, root, "bind", syscall.MS_BIND|syscall.MS_REC, ""); err != nil {
+	if err := syscall.Mount(root, root, "bind", syscall.MS_BIND|syscall.MS_REC|syscall.MS_PRIVATE, ""); err != nil {
 		return errors.Wrap(err, "mount rootfs to itself")
 	}
-	// 从新创建的rootfs进行隔离，才可以使用pivot_root
+	/*
+		This code is using syscall.Mount to remount the root filesystem (/) with the MS_PRIVATE flag. The MS_REC flag is used to recursively apply the mount options to all mount points within the subtree.
+		Breaking down the parameters:
+			"": This represents the source, which is empty ("") in your case, indicating that it's not a bind mount.
+			"/": This is the target, which is the root directory (/) in this case.
+			"": This is the filesystem type, and it's empty ("") indicating that the type is inferred from the existing mount.
+			syscall.MS_REC|syscall.MS_PRIVATE: These are the mount flags. MS_REC specifies that the mount should be propagated recursively, and MS_PRIVATE specifies that the mount is a private mount.
+			"": These are options, and it's empty ("") indicating no additional mount options.
+		This code snippet is essentially creating a private mount of the root filesystem, making changes to this mount point independent of other mount points in the system. The MS_REC flag ensures that the mount options are recursively applied to all mount points within the subtree.
+	*/
 	if err := syscall.Mount("", "/", "", syscall.MS_REC|syscall.MS_PRIVATE, ""); err != nil {
 		return err
 	}
